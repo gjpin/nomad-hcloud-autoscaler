@@ -75,7 +75,7 @@ scaling "hcloud_cluster" {
 
     check "high-cpu-allocated" {
       source       = "prometheus"
-      query        = "nomad_client_allocated_cpu{node_class=\"nomad_clients\"} / (nomad_client_allocated_cpu{node_class=\"nomad_clients\"} + nomad_client_unallocated_cpu{node_class=\"nomad_clients\"}) * 100"
+      query        = "sum(nomad_client_allocated_cpu{node_class=\"nomad_clients\"} * 100 / (nomad_client_allocated_cpu{node_class=\"nomad_clients\"} + nomad_client_unallocated_cpu{node_class=\"nomad_clients\"})) / count(nomad_client_unallocated_cpu{node_class=\"nomad_clients\"})"
       query_window = "1m"
 
       # https://www.nomadproject.io/tools/autoscaling/plugins/strategy/threshold
@@ -88,7 +88,7 @@ scaling "hcloud_cluster" {
 
     check "high-memory-allocated" {
       source       = "prometheus"
-      query        = "nomad_client_allocated_memory{node_class=\"nomad_clients\"} / (nomad_client_allocated_memory{node_class=\"nomad_clients\"} + nomad_client_unallocated_memory{node_class=\"nomad_clients\"}) * 100"
+      query        = "sum(nomad_client_allocated_memory{node_class=\"nomad_clients\"} * 100 / (nomad_client_allocated_memory{node_class=\"nomad_clients\"} + nomad_client_unallocated_memory{node_class=\"nomad_clients\"})) / count(nomad_client_unallocated_memory{node_class=\"nomad_clients\"})"
       query_window = "1m"
 
       strategy "threshold" {
