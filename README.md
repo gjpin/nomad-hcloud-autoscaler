@@ -47,8 +47,8 @@ apm "prometheus" {
 }
 
 # https://www.nomadproject.io/tools/autoscaling/agent/strategy
-strategy "target-value" {
-  driver = "target-value"
+strategy "threshold" {
+  driver = "threshold"
 }
 
 # https://www.nomadproject.io/tools/autoscaling/agent/target
@@ -70,27 +70,31 @@ scaling "hcloud_cluster" {
   max     = 3
 
   policy {
-    cooldown            = "1m"
-    evaluation_interval = "10s"
+    cooldown            = "5m"
+    evaluation_interval = "5m"
 
-    check "cpu_allocated_percentage" {
-      source = "prometheus"
-      query  = "nomad_client_allocated_cpu{node_class=\"nomad_clients\"} / (nomad_client_allocated_cpu{node_class=\"nomad_clients\"} + nomad_client_unallocated_cpu{node_class=\"nomad_clients\"}) * 100"
+    check "high-cpu-allocated" {
+      source       = "prometheus"
+      query        = "nomad_client_allocated_cpu{node_class=\"nomad_clients\"} / (nomad_client_allocated_cpu{node_class=\"nomad_clients\"} + nomad_client_unallocated_cpu{node_class=\"nomad_clients\"}) * 100"
+      query_window = "1m"
 
-      # https://www.nomadproject.io/tools/autoscaling/plugins/strategy/target-value
-      strategy "target-value" {
-        target    = 70
-        threshold = 0.01
+      # https://www.nomadproject.io/tools/autoscaling/plugins/strategy/threshold
+      strategy "threshold" {
+        upper_bound = 100
+        lower_bound = 70
+        delta       = 1
       }
     }
 
-    check "mem_allocated_percentage" {
-      source = "prometheus"
-      query  = "nomad_client_allocated_memory{node_class=\"nomad_clients\"} / (nomad_client_allocated_memory{node_class=\"nomad_clients\"} + nomad_client_unallocated_memory{node_class=\"nomad_clients\"}) * 100"
+    check "high-memory-allocated" {
+      source       = "prometheus"
+      query        = "nomad_client_allocated_memory{node_class=\"nomad_clients\"} / (nomad_client_allocated_memory{node_class=\"nomad_clients\"} + nomad_client_unallocated_memory{node_class=\"nomad_clients\"}) * 100"
+      query_window = "1m"
 
-      strategy "target-value" {
-        target    = 70
-        threshold = 0.01
+      strategy "threshold" {
+        upper_bound = 100
+        lower_bound = 70
+        delta       = 1
       }
     }
 
